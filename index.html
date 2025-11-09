@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Homara</title>
+    <link rel="icon" type="image/png" href="./assets/images/whitelogo (1).png">
+    <link rel="shortcut icon" type="image/png" href="./assets/images/whitelogo (1).png">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Three.js CDN - using importmap for ES modules -->
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.180.0/build/three.module.js"
+        }
+      }
+    </script>
+    
+    <style>
+      @font-face {
+        font-family: 'NDOT47';
+        src: url('./assets/fonts/ndot-47-inspired-by-nothing.otf') format('opentype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Speran1315';
+        src: url('./assets/fonts/speran-13-15.otf') format('opentype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'BraunLinear';
+        src: url('./assets/fonts/BraunLinear-Regular.woff2') format('woff2');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'BraunLinear';
+        src: url('./assets/fonts/BraunLinear-Bold.woff2') format('woff2');
+        font-weight: bold;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        background-color: black !important;
+      }
+
+      .ndot-font {
+        font-family: 'NDOT47', system-ui, sans-serif;
+      }
+      .speran-font {
+        font-family: 'Speran1315', system-ui, sans-serif;
+      }
+      .speran-font-scaled {
+        font-family: 'Speran1315', system-ui, sans-serif;
+        font-size: 0.7em;
+      }
+      .braun-regular {
+        font-family: 'BraunLinear', system-ui, sans-serif;
+        font-weight: normal;
+      }
+      .braun-bold {
+        font-family: 'BraunLinear', system-ui, sans-serif;
+        font-weight: bold;
+      }
+
+      /* Light/Dark Mode Styles */
+      .light-mode {
+        background-color: white !important;
+        color: #333 !important;
+      }
+      .light-mode .text-gray-200 {
+        color: #333 !important;
+      }
+      .light-mode canvas {
+        filter: invert(1);
+      }
+      .light-mode .bg-black {
+        background-color: white !important;
+        color: #333 !important;
+        border-color: #333 !important;
+      }
+      .light-mode .border-white {
+        border-color: #333 !important;
+      }
+      .light-mode .text-white {
+        color: #333 !important;
+      }
+      .light-mode .hover\\:bg-gray-900:hover {
+        background-color: #f0f0f0 !important;
+      }
+
+      #theme-toggle {
+        transition: all 0.3s ease;
+      }
+
+      /* Loading Animation Styles */
+      .fade-in {
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+      }
+
+      .fade-in.visible {
+        opacity: 1;
+      }
+
+      .fade-in-fast {
+        opacity: 0;
+        transition: opacity 0.8s ease-in-out;
+      }
+
+      .fade-in-fast.visible {
+        opacity: 1;
+      }
+
+      /* Initially hide elements that should fade in */
+      #background-canvas {
+        opacity: 0;
+        transition: opacity 1.5s ease-in-out;
+      }
+
+      .hero-title {
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+      }
+
+      .hero-description p {
+        opacity: 0;
+        transition: opacity 0.8s ease-in-out;
+      }
+
+      .hero-buttons {
+        opacity: 0;
+        transition: opacity 0.8s ease-in-out;
+      }
+
+      .scroll-arrow {
+        opacity: 0;
+        transition: opacity 0.8s ease-in-out;
+        color: white;
+      }
+
+      .header-content {
+        opacity: 0;
+        transition: opacity 0.8s ease-in-out;
+      }
+
+      /* Light mode scroll arrow */
+      .light-mode .scroll-arrow {
+        color: #333;
+      }
+
+      /* Rotating text animation */
+      .animate-spin-slow {
+        animation: spin 10s linear infinite;
+      }
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Light mode text color */
+      .light-mode #rotating-text text {
+        fill: #333 !important;
+      }
+
+      /* Hide scrollbar but maintain scroll functionality */
+      html::-webkit-scrollbar,
+      body::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+      }
+
+      html,
+      body {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+      }
+
+      /* Mobile responsive styles */
+      @media (max-width: 767px) {
+        .desktop-only {
+          display: none !important;
+        }
+
+        .hero-title {
+          font-size: 3rem !important;
+          white-space: normal !important;
+        }
+
+        .hero-description {
+          font-size: 1.125rem !important;
+        }
+
+        .logo-bottom {
+          max-width: 200px !important;
+        }
+
+        .input-container {
+          flex-direction: column !important;
+        }
+
+        .input-container input {
+          border-radius: 0.25rem !important;
+          margin-bottom: 0.625rem !important;
+        }
+
+        .input-container button {
+          border-radius: 0.25rem !important;
+        }
+      }
+
+      /* Email form submission message styles */
+      #submission-message.show {
+        opacity: 1 !important;
+        color: #4ade80;
+      }
+
+      /* Light mode email form styles */
+      .light-mode #email-input {
+        color: #333 !important;
+        border-color: #333 !important;
+      }
+
+      .light-mode #email-input::placeholder {
+        color: #666 !important;
+      }
+
+      .light-mode #submit-btn {
+        background-color: #333 !important;
+        color: white !important;
+        border-color: #333 !important;
+      }
+
+      .light-mode #submit-btn:hover {
+        background-color: #555 !important;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Ensure page starts at top -->
+    <script>
+      // Force scroll to top on page load/refresh
+      if (history.scrollRestoration) {
+        history.scrollRestoration = 'manual';
+      }
+      window.scrollTo(0, 0);
+    </script>
+
+    <div class="relative min-h-screen text-gray-200">
+      <!-- Background Canvas -->
+      <canvas id="background-canvas" class="fixed inset-0 w-full h-full"></canvas>
+
+      <!-- Fixed Header -->
+      <header class="absolute top-0 left-0 right-0 z-50 p-6">
+        <div class="flex items-center justify-between">
+          <!-- Logo and Company Name -->
+          <div class="flex items-center space-x-4 header-content">
+            <img src="./assets/images/whitelogo (1).png" alt="Homara Logo" width="60" height="60" class="object-contain">
+            <h1 class="text-3xl tracking-wide speran-font">Homara</h1>
+          </div>
+
+          <!-- Theme Toggle Button -->
+          <button id="theme-toggle" class="relative p-4 bg-transparent hover:bg-opacity-20 transition-all header-content">
+            <div class="relative w-10 h-10 flex items-center justify-center">
+              <!-- Rotating Text Circle -->
+              <div id="rotating-text" class="absolute inset-0 animate-spin-slow">
+                <svg width="40" height="40" viewBox="0 0 40 40" class="w-full h-full">
+                  <defs>
+                    <path id="circle-path" d="M 20,20 m -15,0 a 15,15 0 1,1 30,0 a 15,15 0 1,1 -30,0" />
+                  </defs>
+                  <text class="text-[7.5px] fill-white braun-regular" font-size="7.5">
+                    <textPath href="#circle-path" id="circle-text">
+                      LIGHT MODE • LIGHT MODE •
+                    </textPath>
+                  </text>
+                </svg>
+              </div>
+              <!-- Lightbulb Icon -->
+              <img id="theme-icon" src="./assets/images/light mode bulb-Photoroom.png" alt="Toggle Theme" width="20" height="20" class="object-contain relative z-10">
+            </div>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <div class="relative z-10 bg-transparent">
+        <!-- Hero Section -->
+        <section class="h-screen flex items-center justify-center px-8 relative">
+          <div class="text-center max-w-6xl">
+            <h1 class="text-8xl font-bold mb-8 leading-none whitespace-nowrap hero-title"><span class="braun-regular">Find Your</span> <span class="speran-font-scaled">Community</span></h1>
+            <div class="text-2xl mb-12 leading-relaxed space-y-2 braun-regular hero-description">
+              <p id="hero-line-1">A new take on digital connection.</p>
+              <p id="hero-line-2">No more algorithms, no more mindless consumption.</p>
+              <p id="hero-line-3">A place for art and creativity to truly come together.</p>
+            </div>
+          </div>
+
+          <!-- Scroll Down Arrow -->
+          <div class="absolute bottom-12 left-1/2 transform -translate-x-1/2 scroll-arrow">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="animate-bounce">
+              <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </section>
+
+        <!-- Content Section 1 -->
+        <section class="desktop-only h-5/8 flex items-start justify-start px-8 py-10">
+          <div class="w-1/2 text-left space-y-4">
+            <h2 class="text-3xl braun-bold">Current Digital Media is Designed to Isolate Us.</h2>
+            <p class="text-lg leading-relaxed braun-regular">
+              We believe that sharing art and creative work digitally shouldn't be subjected to a ranking algorithm, or metrics
+              such as likes or followers. Putting yourself out there is meaningful, and can be scary, especially when it
+              comes to things you care about.
+            </p>
+            <p class="text-lg leading-relaxed braun-regular">
+              We want to make it easier for people to share both share their work with others in a more organic and
+              centered way, and also provide people with a place to go to learn about the other creators in their area.
+            </p>
+          </div>
+        </section>
+
+        <!-- Content Section 2 -->
+        <section class="desktop-only h-5/8 flex items-center justify-end px-8 py-10">
+          <div class="w-1/2 text-left space-y-4">
+            <h2 class="text-2xl braun-bold">Our Goal:</h2>
+            <p class="text-lg leading-relaxed braun-regular">
+              Finding a healthy balance of consumption that fuels creative output instead of dampening it. We all know we are addicted to technology but there is nothing we can do about it.
+            </p>
+            <p class="text-lg leading-relaxed braun-regular">
+              Our desire to be seen and connected with each other has been taken advantage of
+              through the artificial connectivity approach our existing tech corporations have created. The more time we spend distracted by the illusion of connectivity,
+              wasting our time looking at ads disguised amongst the people and things we care about
+              the more profit these companies make.
+            </p>
+          </div>
+        </section>
+
+        <!-- Content Section 3 -->
+        <section class="desktop-only h-5/8 flex items-start justify-start px-8 py-10">
+          <div class="w-1/2 text-left space-y-4">
+            <h2 class="text-2xl braun-bold">
+              These platforms are designed to exploit vulnerabilities in our psychology. Homara is designed to oppose this practice.
+            </h2>
+            <p class="text-lg leading-relaxed braun-regular">
+              We would love to hear input from all people who visit this site.
+              This isn't a big company or a corporation with monetary based goals
+            </p>
+            <p class="text-lg leading-relaxed braun-regular">
+              We are a group of friends and creators who want to help foster a digital age that helps
+              people actually connect with each other.
+            </p>
+          </div>
+        </section>
+
+        <!-- Content Section 4 -->
+        <section class="desktop-only h-5/8 flex items-center justify-center px-8 py-10">
+          <div class="w-1/2 text-center space-y-4">
+            <p class="text-lg leading-relaxed braun-regular">
+              Homara will never have ads, or try and drive engagement for the sake of selling your data.
+            </p>
+          </div>
+        </section>
+
+        <!-- Content Section 5 -->
+         <section class="desktop-only h-5/8 flex items-center justify-end px-8 py-10">
+          <div class="w-1/2 text-left space-y-4">
+            <h2 class="text-2xl braun-bold">This is just the beginning</h2>
+            <p class="text-lg leading-relaxed braun-regular">
+              Our plan for Homara is much greater than just a website. In the coming months we will be releasing a desktop app
+              that will be able to function as the full version of our project. Anyone will be able to create their own point cloud community
+              and share it with their friends, for as low of a cost as we possibly can.
+            </p>
+            <p class="text-lg leading-relaxed braun-regular">
+              The app will allow for livestreams, so you can share and archive
+              live shows or performances digitally, receive donations or tips on your page, or embed and show users your own website.
+            </p>
+          </div>
+        </section>
+
+        <!-- Content Section 6 -->
+        <section class="desktop-only h-5/8 flex items-center justify-center px-8 py-10">
+          <div class="w-1/2 text-center space-y-4">
+            <p class="text-lg leading-relaxed braun-regular">
+              Eventually, we will use the Homara app to provide information about real world pop up events
+              for creators and users in our Flagship cities.
+            </p>
+            <p class="text-lg leading-relaxed braun-regular">
+              With your help we want to help turn these digital interactions into real life connection through
+              our events,
+            </p>
+            <p class="text-lg leading-relaxed braun-regular">
+              creating a safe place where members of these creative communities can truly come together.
+            </p>
+          </div>
+        </section>
+
+        <!-- Sneak Peek Button Section -->
+        <section class="flex items-center justify-center px-8 py-20">
+          <button id="sneak-peek-btn" class="px-16 py-8 text-2xl bg-black text-white border-2 border-white rounded-xl hover:bg-gray-900 transition-colors speran-font-scaled">
+            Sneak Peek
+          </button>
+        </section>
+
+        <!-- Email Signup Section -->
+        <section class="flex flex-col items-center justify-center px-8 py-20 pb-32">
+          <img id="email-logo" src="./whitelogo.png" alt="Homara - A Digital Community Building Tool" class="logo-bottom mb-8" style="max-width: 300px; width: 100%; height: auto;">
+          <h2 class="text-2xl mb-8 braun-regular" style="opacity: 0.8;">You are early, join our email list for updates!</h2>
+
+          <form id="email-form" class="w-full max-w-md">
+            <div class="input-container flex mb-5">
+              <input type="email" id="email-input" placeholder="Enter your email" required
+                class="flex-1 px-5 py-3.5 text-base bg-transparent border-2 border-white rounded-l text-white braun-regular focus:outline-none focus:border-gray-300"
+                style="font-family: 'BraunLinear', system-ui, sans-serif;">
+              <button type="submit" id="submit-btn"
+                class="px-8 py-3.5 text-base bg-white text-black border-2 border-white rounded-r hover:bg-gray-200 transition-colors braun-regular"
+                style="font-family: 'BraunLinear', system-ui, sans-serif;">
+                Submit
+              </button>
+            </div>
+            <div id="submission-message" class="text-center text-lg transition-opacity duration-300 braun-regular" style="opacity: 0;"></div>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <!-- Video Overlay -->
+    <div id="video-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: black; z-index: 9999; justify-content: center; align-items: center; transition: opacity 0.5s ease-in-out;">
+      <video id="video-player" style="width: 100%; height: 100%; object-fit: contain; transition: opacity 1s ease-in-out;" playsinline>
+        <source id="video-source" src="" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    </div>
+
+    <!-- Responsive Manager Script -->
+    <script src="responsive.js"></script>
+
+    <!-- Loading Animation Script -->
+    <script src="loading.js"></script>
+
+    <script>
+      // Initialize responsive manager
+      window.responsiveManager = new ResponsiveManager();
+
+      // Initialize loading animation when DOM is ready
+      document.addEventListener('DOMContentLoaded', function() {
+        // Create and start loading animation
+        const loadingAnimation = new LoadingAnimation();
+        loadingAnimation.init();
+
+        // Set callback for when loading animation completes
+        loadingAnimation.setOnComplete(function() {
+          // Start the fade-in sequence after loading completes
+          initLoadingSequence();
+        });
+
+        // Simulate loading progress
+        let progress = 0;
+        const interval = setInterval(function() {
+          progress += 1;
+          if (progress <= 100) {
+            loadingAnimation.updateProgress(progress);
+          } else {
+            clearInterval(interval);
+          }
+        }, 30); // Approximately 3 seconds total
+      });
+    </script>
+
+    <!-- Three.js Background Animation Script -->
+    <script type="module">
+      import * as THREE from 'three';
+
+      // Initialize the particle network background
+      function initBackgroundCanvas() {
+        const canvas = document.getElementById('background-canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 0);
+
+        // Create particles
+        const particleCount = 100;
+        const particles = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const velocities = [];
+
+        // Create layered depth distribution
+        const layers = 5; // Number of depth layers
+        const particlesPerLayer = Math.floor(particleCount / layers);
+
+        for (let i = 0; i < particleCount; i++) {
+          const layerIndex = Math.floor(i / particlesPerLayer);
+          const layerZ = (layerIndex / (layers - 1)) * 16 - 8; // Spread from -8 to +8
+
+          // X and Y positions - more concentrated in center layers
+          const layerSpread = 18 - (Math.abs(layerIndex - 2) * 2); // Varies from 14 to 18
+          positions[i * 3] = (Math.random() - 0.5) * layerSpread;
+          positions[i * 3 + 1] = (Math.random() - 0.5) * layerSpread;
+
+          // Z position - fixed to layer with small random variation
+          positions[i * 3 + 2] = layerZ + (Math.random() - 0.5) * 2;
+
+          // Slower movement for background layers, faster for foreground
+          const depthFactor = 0.5 + (layerIndex / (layers - 1)) * 0.5; // 0.5 to 1.0
+          velocities.push({
+            x: (Math.random() - 0.5) * 0.015 * depthFactor,
+            y: (Math.random() - 0.5) * 0.015 * depthFactor,
+            z: (Math.random() - 0.5) * 0.005 // Minimal Z movement to maintain layers
+          });
+        }
+
+        particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        const particleMaterial = new THREE.PointsMaterial({
+          color: 0x808080,
+          size: 3,
+          transparent: true,
+          opacity: 0.7,
+          sizeAttenuation: false
+        });
+
+        const particleSystem = new THREE.Points(particles, particleMaterial);
+        scene.add(particleSystem);
+
+        // Create connections between particles
+        const lineGeometry = new THREE.BufferGeometry();
+        const lineMaterial = new THREE.LineBasicMaterial({
+          color: 0x606060,
+          transparent: true,
+          opacity: 0.5,
+          linewidth: 10
+        });
+
+        camera.position.z = 10;
+
+        // Animation loop
+        function animate() {
+          requestAnimationFrame(animate);
+
+          // Update particle positions
+          const positions = particleSystem.geometry.attributes.position.array;
+          for (let i = 0; i < particleCount; i++) {
+            positions[i * 3] += velocities[i].x;
+            positions[i * 3 + 1] += velocities[i].y;
+            positions[i * 3 + 2] += velocities[i].z;
+
+            // Wrap around screen edges with layer-aware boundaries
+            const layerIndex = Math.floor(i / Math.floor(particleCount / 5));
+            const layerSpread = 18 - (Math.abs(layerIndex - 2) * 2);
+            const boundary = layerSpread / 2;
+
+            if (positions[i * 3] > boundary) positions[i * 3] = -boundary;
+            if (positions[i * 3] < -boundary) positions[i * 3] = boundary;
+            if (positions[i * 3 + 1] > boundary) positions[i * 3 + 1] = -boundary;
+            if (positions[i * 3 + 1] < -boundary) positions[i * 3 + 1] = boundary;
+
+            // Keep Z within layer bounds
+            const targetLayerZ = (layerIndex / 4) * 16 - 8;
+            if (Math.abs(positions[i * 3 + 2] - targetLayerZ) > 2) {
+              positions[i * 3 + 2] = targetLayerZ + (Math.random() - 0.5) * 2;
+            }
+          }
+          particleSystem.geometry.attributes.position.needsUpdate = true;
+
+          // Create dynamic connections with depth-aware logic
+          const linePositions = [];
+          for (let i = 0; i < particleCount; i++) {
+            for (let j = i + 1; j < particleCount; j++) {
+              const dx = positions[i * 3] - positions[j * 3];
+              const dy = positions[i * 3 + 1] - positions[j * 3 + 1];
+              const dz = positions[i * 3 + 2] - positions[j * 3 + 2];
+              const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+              // Adjust connection distance based on depth difference
+              const depthDiff = Math.abs(dz);
+              const connectionThreshold = depthDiff < 4 ? 6 : 4; // Closer connections within layers
+
+              if (distance < connectionThreshold) {
+                linePositions.push(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
+                linePositions.push(positions[j * 3], positions[j * 3 + 1], positions[j * 3 + 2]);
+              }
+            }
+          }
+
+          // Update line geometry
+          scene.remove(scene.getObjectByName('connections'));
+          if (linePositions.length > 0) {
+            const newLineGeometry = new THREE.BufferGeometry();
+            newLineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+            const connections = new THREE.LineSegments(newLineGeometry, lineMaterial);
+            connections.name = 'connections';
+            scene.add(connections);
+          }
+
+          renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        function handleResize() {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        window.addEventListener('resize', handleResize);
+        animate();
+      }
+
+      // Initialize when DOM is loaded
+      document.addEventListener('DOMContentLoaded', () => {
+        initBackgroundCanvas();
+      });
+    </script>
+
+    <!-- Loading Animation Sequence Script -->
+    <script>
+      function initLoadingSequence() {
+        const background = document.getElementById('background-canvas');
+        const heroTitle = document.querySelector('.hero-title');
+        const heroLine1 = document.getElementById('hero-line-1');
+        const heroLine2 = document.getElementById('hero-line-2');
+        const heroLine3 = document.getElementById('hero-line-3');
+        const scrollArrow = document.querySelector('.scroll-arrow');
+        const headerElements = document.querySelectorAll('.header-content');
+
+        // Sequential animation with delays
+        setTimeout(() => {
+          // 1. "Find Your Community" fades in first
+          heroTitle.style.opacity = '1';
+        }, 300);
+
+        setTimeout(() => {
+          // 2. First line fades in
+          heroLine1.style.opacity = '1';
+        }, 1400);
+
+        setTimeout(() => {
+          // 3. Second line fades in
+          heroLine2.style.opacity = '1';
+        }, 2700);
+
+        setTimeout(() => {
+          // 4. Third line fades in
+          heroLine3.style.opacity = '1';
+        }, 4000);
+
+        setTimeout(() => {
+          // 5. Scroll arrow fades in
+          if (scrollArrow) {
+            scrollArrow.style.opacity = '1';
+          }
+        }, 4500);
+
+        setTimeout(() => {
+          // 6. Header elements fade in (logo/name + theme button)
+          headerElements.forEach(element => {
+            element.style.opacity = '1';
+          });
+        }, 4700);
+
+        setTimeout(() => {
+          // 7. Background fades in last
+          background.style.opacity = '1';
+        }, 5300);
+      }
+
+    </script>
+
+    <!-- Video Player Script -->
+    <script>
+      const sneakPeekBtn = document.getElementById('sneak-peek-btn');
+      const videoOverlay = document.getElementById('video-overlay');
+      const videoPlayer = document.getElementById('video-player');
+      const videoSource = document.getElementById('video-source');
+
+      // Function to disable scrolling
+      function disableScroll() {
+        document.body.style.overflow = 'hidden';
+      }
+
+      // Function to enable scrolling
+      function enableScroll() {
+        document.body.style.overflow = '';
+      }
+
+      // Function to close video
+      function closeVideo() {
+        // Fade out the video overlay
+        videoOverlay.style.opacity = '0';
+
+        setTimeout(() => {
+          videoOverlay.style.display = 'none';
+          videoOverlay.style.opacity = '1';
+          videoPlayer.pause();
+          videoPlayer.currentTime = 0;
+          enableScroll();
+        }, 500);
+      }
+
+      sneakPeekBtn.addEventListener('click', () => {
+        // Detect device type and set appropriate video
+        const isMobile = window.innerWidth < 768;
+        const videoPath = isMobile ? './mobile.mp4' : './desktop.mp4';
+
+        videoSource.src = videoPath;
+        videoPlayer.load();
+
+        // Show overlay and play video
+        videoOverlay.style.display = 'flex';
+        videoPlayer.play();
+        disableScroll();
+      });
+
+      // Add fade out effect in the last second of video
+      videoPlayer.addEventListener('timeupdate', () => {
+        const timeRemaining = videoPlayer.duration - videoPlayer.currentTime;
+
+        // Start fade out 1 second before video ends
+        if (timeRemaining <= 1 && timeRemaining > 0) {
+          videoPlayer.style.opacity = timeRemaining.toString();
+        }
+      });
+
+      // When video ends, hide overlay
+      videoPlayer.addEventListener('ended', () => {
+        videoPlayer.style.opacity = '1'; // Reset opacity
+        closeVideo();
+      });
+
+      // Allow clicking overlay to close video
+      videoOverlay.addEventListener('click', (e) => {
+        if (e.target === videoOverlay) {
+          videoPlayer.style.opacity = '1'; // Reset opacity
+          closeVideo();
+        }
+      });
+
+      // Allow ESC key to close video
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && videoOverlay.style.display === 'flex') {
+          videoPlayer.style.opacity = '1'; // Reset opacity
+          closeVideo();
+        }
+      });
+    </script>
+
+    <!-- Email Form Script -->
+    <script>
+      const emailForm = document.getElementById('email-form');
+      const emailInput = document.getElementById('email-input');
+      const submitBtn = document.getElementById('submit-btn');
+      const submissionMessage = document.getElementById('submission-message');
+
+      emailForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const email = emailInput.value.trim();
+
+        if (!email) {
+          return;
+        }
+
+        // Disable the button during submission
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+
+        try {
+          // Submit to Formspree
+          const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xgvavkwq';
+
+          const formData = new FormData();
+          formData.append('email', email);
+          formData.append('submitDate', new Date().toISOString());
+
+          const response = await fetch(FORMSPREE_ENDPOINT, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to submit to Formspree');
+          }
+
+          // Clear the input
+          emailInput.value = '';
+
+          // Show success message
+          submissionMessage.textContent = 'Submitted! Thanks!';
+          submissionMessage.className = 'show';
+
+          // Reset the message after 3 seconds
+          setTimeout(function() {
+            submissionMessage.className = '';
+          }, 3000);
+        } catch (error) {
+          // Show error message
+          submissionMessage.textContent = 'Error submitting. Please try again.';
+          submissionMessage.className = 'show';
+          submissionMessage.style.color = '#ef4444';
+
+          // Reset the message after 3 seconds
+          setTimeout(function() {
+            submissionMessage.className = '';
+            submissionMessage.style.color = '';
+          }, 3000);
+
+          console.error('Error submitting email:', error);
+        } finally {
+          // Re-enable the button
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit';
+        }
+      });
+    </script>
+
+    <!-- Scroll Arrow Hide Script -->
+    <script>
+      // Hide scroll arrow when user scrolls
+      let hasScrolled = false;
+      const scrollArrowElement = document.querySelector('.scroll-arrow');
+
+      window.addEventListener('scroll', () => {
+        if (!hasScrolled && window.scrollY > 50) {
+          hasScrolled = true;
+          if (scrollArrowElement) {
+            scrollArrowElement.style.opacity = '0';
+            // After fade out, hide completely and remove bounce animation
+            setTimeout(() => {
+              scrollArrowElement.style.display = 'none';
+            }, 800);
+          }
+        }
+      });
+    </script>
+
+    <!-- Theme Toggle Script -->
+    <script>
+      const themeToggle = document.getElementById('theme-toggle');
+      const body = document.body;
+      const logoImg = document.querySelector('header img');
+      const emailLogo = document.getElementById('email-logo');
+      const themeIcon = document.getElementById('theme-icon');
+      const circleText = document.getElementById('circle-text');
+
+      // Logo images for different themes
+      const darkModeLogo = './assets/images/whitelogo (1).png';
+      const lightModeLogo = './assets/images/HomaraLogo.png';
+
+      // Email section logo images
+      const darkModeEmailLogo = './whitelogo.png';
+      const lightModeEmailLogo = './BlackLogo- Sticker1.svg';
+
+      // Theme toggle icon images
+      const lightBulbIcon = './assets/images/light mode bulb-Photoroom.png'; // Shows in dark mode (to switch to light)
+      const darkBulbIcon = './assets/images/dark mode bulb.png'; // Shows in light mode (to switch to dark)
+
+      // Check for saved theme preference or default to dark mode
+      const currentTheme = localStorage.getItem('theme') || 'dark';
+
+      // Function to apply theme
+      function applyTheme(theme) {
+        if (theme === 'light') {
+          body.classList.add('light-mode');
+          logoImg.src = lightModeLogo;
+          if (emailLogo) emailLogo.src = lightModeEmailLogo;
+          themeIcon.src = darkBulbIcon; // Show dark bulb when in light mode
+          circleText.textContent = 'DARK MODE • DARK MODE • '; // Show "dark mode" text when in light mode
+        } else {
+          body.classList.remove('light-mode');
+          logoImg.src = darkModeLogo;
+          if (emailLogo) emailLogo.src = darkModeEmailLogo;
+          themeIcon.src = lightBulbIcon; // Show light bulb when in dark mode
+          circleText.textContent = 'LIGHT MODE • LIGHT MODE • '; // Show "light mode" text when in dark mode
+        }
+      }
+
+      // Apply the current theme on page load
+      applyTheme(currentTheme);
+
+      // Theme toggle event listener
+      themeToggle.addEventListener('click', () => {
+        if (body.classList.contains('light-mode')) {
+          // Switch to dark mode
+          applyTheme('dark');
+          localStorage.setItem('theme', 'dark');
+        } else {
+          // Switch to light mode
+          applyTheme('light');
+          localStorage.setItem('theme', 'light');
+        }
+      });
+    </script>
+
+
+  </body>
+</html>
+
