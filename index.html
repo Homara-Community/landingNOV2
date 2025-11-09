@@ -718,17 +718,7 @@
       }
 
       sneakPeekBtn.addEventListener('click', () => {
-        // Detect device type and set appropriate video
-        const isMobile = window.innerWidth < 768;
-        const videoPath = isMobile ? './mobile.mp4' : './desktop.mp4';
-
-        videoSource.src = videoPath;
-        videoPlayer.load();
-
-        // Show overlay and play video
-        videoOverlay.style.display = 'flex';
-        videoPlayer.play();
-        disableScroll();
+        alert('Will be available in 2 days!!');
       });
 
       // Add fade out effect in the last second of video
